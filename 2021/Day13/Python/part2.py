@@ -37,7 +37,7 @@ def day13(contents: str):
                 newMatrix[newX][y] = newMatrix[newX][y] or matrix[x][y]
         return newMatrix
 
-    for i in range(1):
+    for i in range(len(folds)):
         [left, right] = folds[i].split("=")
         foldAxis = left[-1]
         foldPos = int(right)
@@ -48,6 +48,13 @@ def day13(contents: str):
             matrix = foldX(matrix, foldPos)
         else:
             print("ERRORRRRR")
+
+        for y in range(0, len(matrix[0])):
+            line = ""
+            for x in range(0, len(matrix)):
+                line += "#" if matrix[x][y] else "."
+            print(line)
+
 
     c = 0
     for x in range(0, len(matrix)):
