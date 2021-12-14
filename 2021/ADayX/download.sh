@@ -1,1 +1,1 @@
-aoc download --year 2021 --day 12 --file input.txt
+aoc download --year 2021 --day X --file input.txt
