@@ -31,10 +31,10 @@ def posIter(board: list[list[Any]]):
         for y in range(boardHeight(board))
     )
 
-def dayX(contents: str):
+def day#DAY_NUMBER#(contents: str):
     pass
 
 inputFile = open("../input.txt","r")
-print(dayX(inputFile.read()))
+print(day#DAY_NUMBER#(inputFile.read()))
 
 
