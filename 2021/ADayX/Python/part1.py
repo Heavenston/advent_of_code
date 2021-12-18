@@ -1,6 +1,7 @@
 from collections.abc import Callable, Iterator
 from typing import Any, TypeVar
 import pipe as p
+import math
 
 T = TypeVar("T")
 U = TypeVar("U")
