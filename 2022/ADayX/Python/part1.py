@@ -43,8 +43,29 @@ def linearBoard(board: list[list[T]]) -> Iterator[tuple[int, int, T]]:
         for (x, y) in posIter(board)
     )
 
+table1 = {
+
+}
+
+table2 = {
+
+}
+
 def day#DAY_NUMBER#(contents: str):
-    pass
+    lines = contents.split("\n")
+    
+    result1 = 0
+    result2 = 0
+    
+    for i in range(0, len(contents), 1):
+        l = lines[i]
+        
+        if l == "":
+            continue
+            
+        result1 += 0
+    
+    return result1, result2
 
 inputFile = open("../input.txt","r")
 print(day#DAY_NUMBER#(inputFile.read()))
