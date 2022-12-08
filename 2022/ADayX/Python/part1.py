@@ -57,7 +57,7 @@ def day#DAY_NUMBER#(contents: str):
     result1 = 0
     result2 = 0
     
-    for i in range(0, len(contents), 1):
+    for i in range(0, len(lines), 1):
         l = lines[i]
         
         if l == "":
