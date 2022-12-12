@@ -83,7 +83,6 @@ def day12(contents: str):
     q = deque([(b[startY][startX], [(startX, startY)], startX, startY)])
     while len(q) > 0:
         (current, path, x, y) = q.popleft()
-        print(current)
 
         if x == endX and y == endY:
             return len(path)-1
@@ -113,9 +112,6 @@ def day12(contents: str):
                 path + [(px, py)],
                 px, py
             ))
-                
-            
-    
 
 # inputFile = open("../test.txt","r")
 inputFile = open("../input.txt","r")

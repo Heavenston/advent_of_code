@@ -89,7 +89,6 @@ def day12(contents: str):
                 )
     while len(q) > 0:
         (current, path, x, y) = q.popleft()
-        print(current)
 
         if x == endX and y == endY:
             return len(path)-1
