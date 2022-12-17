@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs, mem::size_of};
 use arrayvec::ArrayVec;
 use itertools::{ Itertools, iproduct };
 use std::collections::{ HashMap, HashSet, VecDeque, BinaryHeap };
@@ -11,12 +11,58 @@ struct Valve<'a> {
     conns: Vec<&'a str>,
 }
 
-#[derive(Hash, Debug, Clone, PartialEq, Eq)]
+#[derive(Hash, Debug, Clone, Copy, PartialEq, Eq)]
 struct State {
-    position: [(u8, u16); 2],
     pressure: u16,
     minutes: u8,
-    opened: Vec<u16>,
+    opened: [u8; 7],
+
+    pos1: u8,
+    pos2: u8,
+    wait2: u8,
+}
+
+impl State {
+    pub fn is_opened(&self, pos: u8) -> bool {
+        (self.opened[(pos / 8) as usize] & (1 << (pos % 8))) != 0
+    }
+
+    pub fn open(&mut self, pos: u8) {
+        self.opened[(pos / 8) as usize] |= 1 << (pos % 8);
+    }
+
+    pub fn opened(&self) -> u8 {
+        self.opened.iter().map(|a| a.count_ones() as u8).sum()
+    }
+    
+    pub fn flow(&self, vls: &[Valve]) -> u16 {
+        (0..vls.len())
+            .filter(|i| self.is_opened(*i as u8))
+            .map(|p| vls[p].rate)
+            .sum()
+    }
+
+    pub fn with_pos(&self, pos: u8, wait: u8, vls: &[Valve]) -> Self {
+        let mut n = *self;
+        n.set_pos(pos, wait, vls);
+        n
+    }
+    pub fn set_pos(&mut self, pos: u8, mut wait: u8, vls: &[Valve]) {
+        self.pos1 = pos;
+
+        if self.wait2 > wait {
+            self.pressure += self.flow(vls) * wait as u16;
+            self.minutes -= wait;
+            self.wait2 -= wait;
+        }
+        else {
+            wait -= self.wait2;
+            self.pressure += self.flow(vls) * self.wait2 as u16;
+            self.minutes -= self.wait2;
+            self.wait2 = wait;
+            std::mem::swap(&mut self.pos1, &mut self.pos2);
+        }
+    }
 }
 
 impl PartialOrd for State {
@@ -55,13 +101,13 @@ fn main() {
         }
     }).collect();
     let mut connections = vls.iter().map(|v| v.conns.iter().map(|conn|
-        (vls.iter().enumerate().find(|a| &a.1.name == conn).unwrap().0 as u16, 1)
+        (vls.iter().enumerate().find(|a| &a.1.name == conn).unwrap().0 as u8, 1)
     ).collect_vec()).collect_vec();
 
     // Graph Pruning
     println!("Pruning...");
     let mut removed_vls = HashSet::<usize>::new();
-    'outer: while false {
+    'outer: while true {
         for i in 0..vls.len() {
             if vls[i].rate != 0 { continue }
             if removed_vls.contains(&i) { continue }
@@ -73,13 +119,13 @@ fn main() {
 
                 let culprit = connections[j].iter()
                     .copied()
-                    .enumerate().find(|(_, (a, _))| *a == i as u16);
+                    .enumerate().find(|(_, (a, _))| *a == i as u8);
                 if let Some((index, (_, cost))) = culprit {
                     let mut nc = connections[j].clone();
                     nc.remove(index);
                     nc.extend(
                         connections[i].iter().copied()
-                        .filter(|(a, _)| *a != j as u16)
+                        .filter(|(a, _)| *a != j as u8)
                         .map(|(a, b)| (a, b + cost))
                     );
                     let mut g = HashMap::new();
@@ -106,11 +152,11 @@ fn main() {
         .find(|a| a.1.name == "AA").unwrap().0;
     // connections[start] = connections[start].iter().copied()
     //     .filter(|a| vls[a.0 as usize].rate != 0).collect();
-    let starts = [(start as u16, 0)]
+    let starts = [(start as u8, 0)]
         .into_iter().collect_vec();
 
     {
-        let mut f = HashMap::<u16, u8>::new();
+        let mut f = HashMap::<u8, u8>::new();
         f.extend(starts.iter().copied());
 
         let mut a = starts.clone();
@@ -145,10 +191,13 @@ fn main() {
     let mut heap = BinaryHeap::<State>::new();
     for (start, cost) in starts {
         heap.push(State {
-            position: [(0, start), (0, start)],
             pressure: 0,
             minutes: 25 - cost,
             opened: Default::default(),
+
+            pos1: start,
+            pos2: start,
+            wait2: 0,
         });
     }
 
@@ -158,69 +207,56 @@ fn main() {
     while heap.len() > 0 {
         let mut state = heap.pop().unwrap();
         if i % 100000 == 0 {
+            println!("{}", parkoured.len());
             println!("{}", heap.len());
             println!("{}", state.minutes);
-            println!("{:?}", state.position);
+            println!("{}", state.wait2);
             println!("---------");
         }
         i += 1;
 
-        let pressure_per_min = state.opened.iter().map(|&p| vls[p as usize].rate).sum::<u16>();
-        let min_wait = state.position.iter().copied().enumerate()
-            .min_by_key(|a| a.1.0).unwrap();
-
-        if state.minutes <= min_wait.1.0 {
+        if state.minutes <= 0 {
             let pressure =
-                state.pressure + pressure_per_min * state.minutes as u16;
-            println!("> {pressure}");
+                state.pressure + state.flow(&vls) * state.minutes as u16;
+            println!("<finished>");
+            println!("Parkoured > {}", parkoured.len());
+            println!("SOLutioN  > {pressure}");
+            println!("</finished>");
             return;
         }
 
-        if min_wait.1.0 > 0 {
-            state.position[0].0 -= min_wait.1.0;
-            state.position[1].0 -= min_wait.1.0;
-            state.minutes -= min_wait.1.0;
-            state.pressure += pressure_per_min * min_wait.1.0 as u16;
-        }
+        if state.opened() as usize >= vls.len() {
+            state.pressure += state.flow(&vls) * state.minutes as u16;
+            state.minutes = 0;
 
-        if state.opened.len() >= vls.len() {
-            heap.push(state);
+            if !parkoured.contains(&state) {
+                heap.push(state);
+                parkoured.insert(state);
+            }
             continue;
         }
 
-        let (_, pos) = state.position[min_wait.0];
+        let pos = state.pos1;
         let v = &vls[pos as usize];
 
-        if v.rate != 0 && !state.opened.contains(&pos) {
-            let mut h = state.opened.clone();
-            h.push(pos);
-            h.sort_unstable();
-
-            let mut np = state.position.clone();
-            np[min_wait.0].0 = 1;
-
-            let s = State {
-                opened: h,
-                position: np,
-                ..state.clone()
-            };
+        if state.minutes >= 1 && v.rate != 0 && !state.is_opened(pos) {
+            let mut s = state.clone();
+            s.open(pos);
+            s.set_pos(pos, 1, &vls);
             if !parkoured.contains(&s) {
-                parkoured.insert(s.clone());
+                parkoured.insert(s);
                 heap.push(s);
             }
         }
 
         for &(conn, cost) in &connections[pos as usize] {
-            let mut np = state.position.clone();
-            np[min_wait.0] = (cost, conn);
-            let s = State {
-                position: np,
-                ..state.clone()
-            };
+            if state.minutes < cost { continue }
+
+            let s = state.with_pos(conn, cost, &vls);
             if parkoured.contains(&s) {
                 continue
             }
-            parkoured.insert(s.clone());
+            parkoured.insert(s);
             heap.push(s);
         }
     }
