@@ -8,4 +8,4 @@ fi
 
 PART=$1
 
-cat puzzle.md chatgpt_req.txt | sed -e "s/#PART#/$1/g" | chatgpt ""
+cat puzzle.md prompt.txt | sed -e "s/#PART#/$1/g" | chatgpt ""
