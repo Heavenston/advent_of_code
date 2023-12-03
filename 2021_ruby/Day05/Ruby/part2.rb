@@ -14,33 +14,32 @@ lines.each { |line|
   lx, ly = left.split(",").map { |x| Integer(x) }
   rx, ry = right.split(",").map { |x| Integer(x) }
 
-  sx = [lx, rx].min
-  ex = [lx, rx].max
-  sy = [ly, ry].min
-  ey = [ly, ry].max
+  # printf "\n(%d, %d) -> (%d, %d)\n", lx, ly, rx, ry
 
-  # unless lx == ly or rx == ry or ((lx - rx) == (ly - ry))
+  sx = lx
+  ex = rx
+  sy = ly
+  ey = ry
+
+  # unless sy == ey or sx == ex or ((ey - sy) == (ex - sx))
   #   next
   # end
-  unless sy == ey or sx == ex or ((ey - sy) == (ex - sx))
-    next
-  end
   
   cx = sx
   cy = sy
 
-  # printf "\n(%d, %d) -> (%d, %d)\n", sx, sy, ex, ey
-  while cx < ex or cy < ey
-  #   printf "%d < %d and %d < %d\n", cx, ex, cy, ey
+  # printf "(%d, %d) -> (%d, %d)\n", sx, sy, ex, ey
+  while cx != ex or cy != ey
+  #   printf "%d != %d || %d != %d\n", cx, ex, cy, ey
     h[cx * 10000 + cy] += 1
-    if cx < ex
-      cx += 1
+    if cx != ex
+      cx += cx < ex ? 1 : -1
     end
-    if cy < ey
-      cy += 1
+    if cy != ey
+      cy += cy < ey ? 1 : -1
     end
   end
-  # printf "%d < %d and %d < %d\n", cx, ex, cy, ey
+  # printf "%d == %d && %d == %d\n", cx, ex, cy, ey
   h[cx * 10000 + cy] += 1
 
   total += 1
