@@ -5,3 +5,4 @@ remove any backstory in the above puzzle, keep examples and the exact expected
 parsing of the input, not any other sentence should be added.
 make it clear what is expected, if the answer is already given above, ignore it.
 you need to only explain the part `#PART#` ignore the rest.
+always give the full example as it is needed to test the solution.
