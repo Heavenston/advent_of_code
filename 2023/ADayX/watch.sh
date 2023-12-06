@@ -1,3 +1,3 @@
 #!/bin/sh
 
-find . -type f | entr ./run.sh "$@"
+find . -type f | entr -cc ./run.sh "$@"
