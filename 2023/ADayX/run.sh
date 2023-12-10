@@ -1,7 +1,14 @@
 #!/bin/sh
 
-echo "test:"
-cat test.txt | ruby Ruby/part$1.rb
+if [ $# -ne 2 ]
+then
+  echo missing input file or part name
+  exit 1
+fi
 
-echo -e "\n\ninput:"
-cat input.txt | ruby Ruby/part$1.rb
+export INPUT_FILE="$1"
+export PART_NAME="$2"
+export SOLUTION_FILE="solution_part$PART_NAME.txt"
+
+echo "$INPUT_FILE:"
+cat "$INPUT_FILE" | ruby "Ruby/part$PART_NAME.rb"

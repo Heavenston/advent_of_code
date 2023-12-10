@@ -2,7 +2,7 @@
 
 if [ $# -ne 1 ]
 then
-  echo missing part $#
+  echo missing part number
   exit 1
 fi
 
