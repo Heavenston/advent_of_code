@@ -79,17 +79,13 @@ end
 
 finished = { }
 
-curr = { }
-curr.default = false
-
+curr = []
 bests = {}
-
-curr[{"loss": 0, "pos": Vector[0,0], "dir": Vector[0,1], "tur": 0}] = true
+curr.push({"loss": 0, "pos": Vector[0,0], "dir": Vector[0,1], "tur": 0})
 
 found = false
 while curr.length > 0 and not found
-  best = curr.each_key.min_by { |x| x[:loss] }
-  curr.delete(best)
+  best = curr.pop
 
   continue(best).each { |n|
     bestt = bests[[n[:pos], n[:tur], n[:dir]]]
@@ -97,20 +93,24 @@ while curr.length > 0 and not found
       next
     end
     bests[[n[:pos], n[:tur], n[:dir]]] = n[:loss]
-    curr[n] = true
+
+    i = curr.bsearch_index { |x| x[:loss] < n[:loss] }
+    if i
+      curr.insert(i, n)
+    else
+      curr.push(n)
+    end
   }
 
   puts best.to_s
 
-  f = curr.each_key
+  f = curr.each
     .filter { |x| x[:pos] == $dest and x[:tur] >= 4 }
-    .to_a
-
-  f.each { |f|
-    finished[f] = true
-    curr.delete(f)
-    found = true
-  }
+    .each { |f|
+      finished[f] = true
+      curr.delete(f)
+      found = f[:loss] == 1082
+    }
   # found = curr
   #   .each_key
   #   .any? { |x| x[:pos] == $dest and x[:tur] >= 4 }

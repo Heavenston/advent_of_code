@@ -21,7 +21,7 @@ def is_ref_col(m, col)
     left = left[(left.length - size)...].reverse
     rigt = rigt[...size]
 #     printf "%d, '%s' == '%s'\n", size, left.join(""), rigt.join("")
-    left == rigt and left.length > 0 and rigt.length > 0
+    left.each_index.count { |i| left[i] != rigt[i] } == 1
   }
 end
 
@@ -50,33 +50,33 @@ end
 
 def find(m)
   l = ffind(m)
-  change(m) { |m, i1, i2|
-    nl = ffind(m)
+  # change(m) { |m, i1, i2|
+  #   nl = ffind(m)
     
-    if not nl.all? { |x| x.nil? } and nl != l
-      printf "SMUDGE, %d %d\n", i1, i2
-      return [nl[0] == l[0] ? nil : nl[0], nl[1] == l[1] ? nil : nl[1]]
-    end
-  }
+  #   if not nl.all? { |x| x.nil? } and nl != l
+  #     printf "SMUDGE, %d %d\n", i1, i2
+  #     return [nl[0] == l[0] ? nil : nl[0], nl[1] == l[1] ? nil : nl[1]]
+  #   end
+  # }
   return l
 end
 
-def change(m)
-  m.each_index { |i1|
-    m[i1].each_index { |i2|
-      v = m[i1][i2]
-      nv = ""
-      if v == "."
-        nv = "#"
-      elsif v == "#"
-        nv = "."
-      end
-      m[i1][i2] = nv
-      yield m, i1, i2
-      m[i1][i2] = v
-    }
-  }
-end
+# def change(m)
+#   m.each_index { |i1|
+#     m[i1].each_index { |i2|
+#       v = m[i1][i2]
+#       nv = ""
+#       if v == "."
+#         nv = "#"
+#       elsif v == "#"
+#         nv = "."
+#       end
+#       m[i1][i2] = nv
+#       yield m, i1, i2
+#       m[i1][i2] = v
+#     }
+#   }
+# end
 
 ms.each { |m|
   x = find(m)

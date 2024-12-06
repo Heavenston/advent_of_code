@@ -1,0 +1,5 @@
+
+-----------
+
+rewrite the given puzzle by removing any backstory, but keeping the actual puzzle
+intact as well as the examples.
